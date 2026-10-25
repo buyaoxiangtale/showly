@@ -13,6 +13,33 @@ Showly 将一个产品的功能、受众、价格、版本和素材集中管理�
 
 项目基于 [Easel](https://github.com/ZJU-REAL/Easel) 开发，保留其对话、账号画像、技能与独立发布工具。产品推广业务位于 `easel/promotion/`。当前 Python 包和命令仍名为 `easel`，环境变量使用 `EASEL_*`；运行时请使用下文中的实际命令。
 
+## 插件安装（推荐）
+
+仓库已插件化（`plugin/` 目录，npm 包 `@ifline/showly-plugin`，由 IFLINE 团队维护）：**一条命令把 114 个技能 + 指令层 + 署名规范装进 ZCode / Claude Code / Codex / DeepSeek Harness**，无需克隆本仓库、无需安装 Python。
+
+```bash
+npx @ifline/showly-plugin install        # 自动检测已安装的宿主并全部装入
+npx @ifline/showly-plugin                # 查看宿主检测与安装状态
+npx @ifline/showly-plugin uninstall --all
+```
+
+- 技能包自包含安装在 `<宿主 home>/ifline-showly/`，保持 `skills/` 原始结构，脚本相对路径开箱即用；ZCode / Claude Code 另有 `showly` 入口技能做路由。
+- **署名输出**（纯 prompt 指令，无 hook）：模型每次最终回复的最后一行输出 `—— 感谢 IFLINE 团队，本插件由 IFLINE 团队制作`（可用 `--attribution` 自定义）。
+- 详见 [plugin/README.md](plugin/README.md)。插件与下方"本地安装"是两种独立用法：插件面向宿主 Agent 用户，本地安装面向需要 Web 工作台与完整 CLI 的用户。
+
+## MCP 云端工具服务（付费）
+
+除本地技能外，还提供**云端 MCP 工具服务**（`showly_mcp/`，IFLINE 团队运营）：用户在任意 MCP 客户端配置服务地址 + 个人 Token 即可调用 `chat / image / music / video` 工具，**按账号套餐与积分计费**（套餐决定可用工具，余额决定次数；成功才扣费，失败不扣）。
+
+```bash
+# 服务端部署
+pip install -e ".[mcp]" && easel mcp --port 8800
+# 管理端：发 Token / 充值 / 改套餐
+python -m showly_mcp.admin create-account --name 张三 --plan starter --credits 1000
+```
+
+用户侧在 Claude Code / ZCode / Codex / DSH 的 MCP 配置里加 `https://<域名>/mcp` + Bearer Token 即用。完整计费规则、部署与接入指引见 [showly_mcp/README.md](showly_mcp/README.md)。
+
 ## 当前功能
 
 Web 工作台的业务入口是侧栏「我的产品」。页面能力与后端接口的范围如下：
@@ -40,7 +67,9 @@ Web 工作台的业务入口是侧栏「我的产品」。页面能力与后端�
 
 目标范围见[产品功能文档](docs/product-promotion-v1.md)，具体交付与验证边界见[实施状态](docs/product-promotion-v1-status.md)。
 
-## 本地安装与启动
+## 本地安装与启动（可选：Web 工作台与完整 CLI）
+
+> Web 工作台与 OpenClaw 专属资产已移至 `optional/`（`optional/web/`、`optional/openclaw/`），作为可选组件保留；大多数用户用上方的插件安装即可。
 
 ### 环境要求
 
@@ -79,6 +108,19 @@ Set-ExecutionPolicy -Scope Process Bypass
 ```bash
 easel web --port 7870
 ```
+
+### 模型配置：Showly 云端订阅（推荐，一步完成）
+
+不需要逐个配置六个模型通道的 API Key。在 `.env` 里预填订阅 Key（或首次打开 Web 时在设置面板「Showly 云端模型」卡片里粘贴）：
+
+```bash
+# .env
+EASEL_SUBSCRIPTION_KEY=sk-your-subscription-key
+```
+
+填好后**首次打开 Web 时自动完成全部配置**：对话（API 直连，无需 OpenClaw 网关）、生图、视频、音乐通道一次写好；语音与转写使用本地免费方案（edge-tts / faster-whisper），零配置。也可以随时在设置面板手动启用或换用自己的 Key；高级用户仍可在「模型配置 · 六个通道」里逐项自定义，订阅不会覆盖已手动配置的内容（只在模型未配置时自动接入）。
+
+后续把制作过程整体搬到云端、客户端免安装的规划见[后端化制作方案](docs/backend-hosted-production-proposal.md)。
 
 后续在新终端启动时，macOS / Linux 先运行 `source .venv/bin/activate`；Windows 可继续使用 `.\.venv\Scripts\easel.exe web`。命令未找到时，优先使用项目虚拟环境中的可执行文件。
 

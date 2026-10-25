@@ -2,7 +2,34 @@
 
 All notable changes to Easel are documented in this file.
 
+## [Unreleased] - 2026-10-25
+
+### Added
+
+- Added the hosted MCP tool service (`showly_mcp/`): cloud `chat`/`image`/`music`/`video` tools exposed over streamable HTTP with account-based billing — plans gate tool access, credits gate usage volume. Successful calls charge credits (with a conditional-update guard against concurrent over-charging); failures and pre-check rejections never charge and never hit the model backend.
+- Added the admin CLI (`python -m showly_mcp.admin`) for issuing tokens (SHA-256 hashed at rest, shown once), top-ups, plan changes, suspension, and usage/ledger queries; SQLite storage with versioned migrations.
+- Added ASGI middleware capturing the Bearer token into a request contextvar and binding it to the MCP session so standard clients that drop the Authorization header after initialize keep working.
+- Added `easel mcp --port 8800` launcher and the `[mcp]` extra (`pip install -e ".[mcp]"`); 14 tests covering auth, plan whitelist, insufficient credits, billing, concurrency guard, and the admin CLI (model calls mocked), plus live end-to-end verification with real chat and image generation through the billing loop.
+
+### Added (plugin)
+
+- Added the npm-distributed plugin package `@ifline/showly-plugin` (`plugin/`): one command installs the full 114-skill pack, the engine-neutral instruction layer (AGENTS/SOUL), and the IFLINE attribution spec into ZCode, Claude Code, Codex, and DeepSeek Harness (DSH). The installer (`showly-plugin install/uninstall/status`) is dependency-free Node ≥18, idempotent, and cleanly reversible.
+- Added prompt-only attribution: every final reply's last line outputs the IFLINE team credit (customizable via `--attribution`); merged into each host's instruction file with marked sections. No hooks are registered.
+- Added launcher skill routing for ZCode/Claude Code and AGENTS.md routing for Codex/DSH, pointing at a self-contained `<host>/ifline-showly/` bundle that preserves the original `skills/` layout so relative-path scripts work unchanged.
+- Added installer test suite (7 Node tests) and `npm pack` staging (`prepack` copies repo assets into the package).
+
+### Changed
+
+- Reorganized the repo plugin-first: `web/` moved to `optional/web/` and OpenClaw-only assets (sync.sh, openclaw.json5, tool-budget, gateway scripts) to `optional/openclaw/`; all path references in CLI, setup scripts, doctor, and tests updated, with a conftest compatibility layer keeping old `import web.app` / `import app` test imports working. Full pytest suite matches the pre-reorg baseline exactly.
+
 ## [Unreleased] - 2026-10-24
+
+### Added
+
+- Added Showly cloud model subscription for one-step onboarding: a single `EASEL_SUBSCRIPTION_KEY` in `.env` (or pasted in the settings card) auto-configures chat (direct API, no gateway), image, video, and music channels on first open; voice and transcription stay on free local defaults. No keys are bundled in code — `.env` only.
+- Added `/api/settings/subscription` status and `enable` endpoints, plus zero-click auto-enable during settings bootstrap when models are unconfigured and a subscription key is present.
+- Added the "Showly 云端模型" subscription card at the top of model settings with per-channel enable results; the six-channel matrix remains as advanced configuration.
+- Added the backend-hosted production proposal document describing the staged plan to move media production to a cloud service.
 
 ### Fixed
 

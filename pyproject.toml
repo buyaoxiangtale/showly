@@ -28,8 +28,12 @@ dependencies = [
     "cryptography>=42",
 ]
 
+[project.optional-dependencies]
+# MCP Tools 服务（mcp/，云端托管 + 账号积分计费）：pip install -e .[mcp]
+mcp = ["fastmcp>=2,<5"]
+
 [project.scripts]
 easel = "easel.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["easel*"]
+include = ["easel*", "showly_mcp*"]
