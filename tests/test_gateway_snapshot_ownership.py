@@ -314,7 +314,7 @@ def test_other_process_owner_survives_rejection_and_next_turn_can_start(sandbox,
     script = """
 import sys
 from pathlib import Path
-import web.app as web
+import optional.web.app as web
 web.SESSIONS_DIR = Path(sys.argv[1])
 lock = web._CrossProcLock('cross-process')
 try:

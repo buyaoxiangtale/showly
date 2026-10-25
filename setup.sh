@@ -642,20 +642,20 @@ ok "[2/2] easel 命令可用"
 # ---- 6. 构建 Web 前端（Node 已装 → easel web 直接出真 UI，无需手动构建） ----
 step "6/8" "构建 Web 工作台" "React production bundle"
 info "构建 Web 前端..."
-if [ -d "$PROJECT_ROOT/web/frontend" ]; then
+if [ -d "$PROJECT_ROOT/optional/web/frontend" ]; then
     if [ "$SETUP_MODE" = check ]; then
         emit_action run_step '前端依赖与构建' '依赖安装 + production bundle'
     elif ! (
-        cd "$PROJECT_ROOT/web/frontend"
+        cd "$PROJECT_ROOT/optional/web/frontend"
         if [ -f package-lock.json ]; then npm ci --no-audit --no-fund "${NPM_REGISTRY_ARGS[@]}" || npm install --no-audit --no-fund "${NPM_REGISTRY_ARGS[@]}"; else npm install --no-audit --no-fund "${NPM_REGISTRY_ARGS[@]}"; fi
         npm run build
     ); then
         echo "前端依赖安装或构建失败；请检查 Node.js/npm 网络后重新运行 bash setup.sh。" >&2
         exit 1
     fi
-    ok "前端已构建 → web/frontend/dist/"
+    ok "前端已构建 → optional/web/frontend/dist/"
 else
-    echo "未找到 web/frontend，无法完成 Web 工作台安装。" >&2
+    echo "未找到 optional/web/frontend，无法完成 Web 工作台安装。" >&2
     exit 1
 fi
 
@@ -706,11 +706,11 @@ info "同步 Easel skills..."
 # 注意两点：stderr 不能并进管道（见上），且 grep 无匹配时退出 1 —— 在 pipefail 下
 # 那会把一次成功的同步变成「安装中断」。先捕获 stdout，再分别判同步本身的成败。
 SYNC_RC=0
-SYNC_OUT="$(run_step 'agents/sync.sh' bash "$PROJECT_ROOT/agents/sync.sh")" || SYNC_RC=$?
+SYNC_OUT="$(run_step 'optional/openclaw/sync.sh' bash "$PROJECT_ROOT/optional/openclaw/sync.sh")" || SYNC_RC=$?
 printf '%s\n' "$SYNC_OUT" | grep -E '✓|→' || true
 if [ "$SYNC_RC" -ne 0 ]; then
-    warn_collect '技能同步' "agents/sync.sh 退出码 $SYNC_RC；技能可能没进 agent 实际读取的 workspace" \
-        'bash agents/sync.sh' high
+    warn_collect '技能同步' "optional/openclaw/sync.sh 退出码 $SYNC_RC；技能可能没进 agent 实际读取的 workspace" \
+        'bash optional/openclaw/sync.sh' high
 fi
 
 # ---- 9. 认证信息写入 Easel 专属 OpenClaw config ----
@@ -1109,7 +1109,7 @@ fi
 step "8/8" "启动并验证" "配置校验 · Chromium · Gateway health"
 info "启动 Easel gateway..."
 # 降级而非中断：gateway 随时可以重启，没理由让一次十几分钟的安装在这最后一步作废。
-if ! run_step 'gateway start' bash "$PROJECT_ROOT/scripts/gateway.sh" start; then
+if ! run_step 'gateway start' bash "$PROJECT_ROOT/optional/openclaw/gateway.sh" start; then
     warn_collect 'Gateway' '启动失败' 'bash scripts/gateway.sh start（日志：/tmp/easel-gateway.log）' high
 fi
 fi

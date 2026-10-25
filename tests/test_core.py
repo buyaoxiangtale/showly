@@ -15,7 +15,7 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(PROJECT_ROOT / "web"))
+sys.path.insert(0, str(PROJECT_ROOT / "optional" / "web"))
 sys.path.insert(0, str(PROJECT_ROOT / "skills" / "builtin" / "paper-explainer" / "scripts"))
 sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
@@ -338,7 +338,7 @@ def test_attachment_context_rejects_tampered_reference(tmp_path, monkeypatch):
 
 # ---- 跨平台：文本落盘必须显式 encoding（否则 Windows cp1252/gbk 写中文报错、读回丢内容）----
 
-@pytest.mark.parametrize("rel", ["web/app.py", "easel/persona.py", "easel/commands/skill.py"])
+@pytest.mark.parametrize("rel", ["optional/web/app.py", "easel/persona.py", "easel/commands/skill.py"])
 def test_text_io_always_pins_utf8_encoding(rel):
     """read_text/write_text 若不显式指定 encoding，Windows 默认非 UTF-8：
     写中文抛 UnicodeEncodeError（落不了盘），读回抛 UnicodeDecodeError（像丢了数据）。

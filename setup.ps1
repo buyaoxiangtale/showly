@@ -313,7 +313,7 @@ if ($LASTEXITCODE -ne 0) { Fail 'pip 升级失败。' }
 if ($LASTEXITCODE -ne 0) { Fail 'Easel Python 依赖安装失败。' }
 Step '4/8' '构建 Web 工作台' 'React production bundle'
 Info '构建 Web 前端...'
-$Frontend = Join-Path $Root 'web\frontend'
+$Frontend = Join-Path $Root 'optional\web\frontend'
 Push-Location $Frontend
 try {
     & npm install
@@ -567,11 +567,11 @@ if (Test-OpenClawSupport @('config') 'validate') {
 }
 Step '8/8' '启动并验证' '配置校验 · Gateway health'
 $gw = Invoke-NativeCapture 'powershell' @('-NoProfile','-ExecutionPolicy','Bypass','-File',
-    (Join-Path $Root 'scripts\gateway.ps1'), 'start')
+    (Join-Path $Root 'optional\openclaw\gateway.ps1'), 'start')
 ($gw.Output -split "`n") | Where-Object { $_ } | ForEach-Object { Write-Host $_ }
 # 降级而非中断：gateway 随时可以重启，没理由让一次十几分钟的安装在最后一步作废。
 if (-not $gw.Ok) {
-    Add-Warning 'Gateway' '启动失败' 'powershell -File scripts\gateway.ps1 start' 'high'
+    Add-Warning 'Gateway' '启动失败' 'powershell -File optional\openclaw\gateway.ps1 start' 'high'
 }
 }
 

@@ -23,7 +23,7 @@ from types import SimpleNamespace
 
 import pytest
 
-import web.app as web
+import optional.web.app as web
 
 SHARED = Path(__file__).resolve().parents[1] / "skills" / "shared" / "scripts"
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"

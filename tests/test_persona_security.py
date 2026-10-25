@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(PROJECT_ROOT / "web"))
+sys.path.insert(0, str(PROJECT_ROOT / "optional" / "web"))
 
 import web.app as web  # noqa: E402
 import easel.persona as persona  # noqa: E402

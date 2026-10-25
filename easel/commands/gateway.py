@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-GATEWAY_SCRIPT = PROJECT_ROOT / "scripts" / ("gateway.ps1" if os.name == "nt" else "gateway.sh")
+GATEWAY_SCRIPT = PROJECT_ROOT / "optional" / "openclaw" / ("gateway.ps1" if os.name == "nt" else "gateway.sh")
 
 
 def cmd_gateway(args) -> int:

@@ -409,7 +409,7 @@ def cmd_doctor(_args) -> int:
 
     frontend_ready = (PROJECT_ROOT / "web" / "frontend" / "dist" / "index.html").is_file()
     all_ok &= _check("Web frontend build", frontend_ready,
-                      "运行 cd web/frontend && npm ci && npm run build")
+                      "运行 cd optional/web/frontend && npm ci && npm run build")
     all_ok &= _check("Playwright Chromium", _chromium_available(),
                       "运行 python3 -m playwright install chromium")
 
@@ -457,13 +457,14 @@ def cmd_doctor(_args) -> int:
         # 5. Skills synced
         synced, synced_detail = _skills_synced()
         all_ok &= _check("Skills synced", synced,
-                          f"{synced_detail}；重新运行 setup.ps1（Windows）或 bash agents/sync.sh（Linux/macOS）")
+                          f"{synced_detail}；重新运行 setup.ps1（Windows）或 bash optional/openclaw/sync.sh（Linux/macOS）")
 
     # 6. Key project files
-    gateway_label = "scripts/gateway.ps1" if os.name == "nt" else "scripts/gateway.sh"
+    gateway_label = ("optional/openclaw/gateway.ps1" if os.name == "nt"
+                     else "optional/openclaw/gateway.sh")
     gateway_path = PROJECT_ROOT / "scripts" / ("gateway.ps1" if os.name == "nt" else "gateway.sh")
     key_files = [
-        ("agents/openclaw.json5", PROJECT_ROOT / "agents" / "openclaw.json5"),
+        ("optional/openclaw/openclaw.json5", PROJECT_ROOT / "optional" / "openclaw" / "openclaw.json5"),
         ("skills/builtin/", PROJECT_ROOT / "skills" / "builtin"),
         (gateway_label, gateway_path),
     ]
