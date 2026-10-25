@@ -10,7 +10,7 @@ from unittest.mock import Mock
 import pytest
 from fastapi import HTTPException
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "web"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "optional" / "web"))
 import app as web
 
 

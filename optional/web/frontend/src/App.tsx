@@ -59,6 +59,8 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   // 装完还没配模型时，首开要把用户直接带到模型设置页（安装脚本不再在终端问 Key）
   const [needModelSetup, setNeedModelSetup] = useState(false);
+  // bootstrap 零点击接入了订阅：打开设置给一条确认提示（不是错误，关掉即可）
+  const [subAutoEnabled, setSubAutoEnabled] = useState(false);
 
   // 对话里的「产物路径 → 内容库」跳转：linkifyOutputs 把目录路径生成为
   // `#/outputs/<路径>` 锚点，这里监听 hashchange 切页并带上下文，随后清掉 hash
@@ -181,6 +183,12 @@ export default function App() {
         if (unconfigured) {
           // 直接打开设置面板（它默认就停在「模型配置 · 对话」页）
           setNeedModelSetup(true);
+          setSettingsOpen(true);
+          return;
+        }
+        // 零点击接入成功：打开设置只为给确认提示，看完关掉即可
+        if (boot && boot.subscriptionAutoEnabled) {
+          setSubAutoEnabled(true);
           setSettingsOpen(true);
           return;
         }
@@ -847,11 +855,14 @@ export default function App() {
       {settingsOpen && (
         <SettingsPanel
           banner={needModelSetup
-            ? '还没有配置模型 —— 填一个 API Key 才能开始对话。保存后会自动同步配置并重启网关。'
-            : ''}
+            ? '还没有配置模型 —— 可以直接用上方「Showly 云端模型」一键启用，或手动填一个 API Key。'
+            : subAutoEnabled
+              ? '已自动启用 Showly 云端模型订阅，现在就可以开始对话；可在此更换 Key 或查看高级配置。'
+              : ''}
           onClose={() => {
             setSettingsOpen(false);
             setNeedModelSetup(false);
+            setSubAutoEnabled(false);
             void fetchStatus().then((data) => {
               setApiDirect(data.transport === 'api');
               setAgentRuntime(data.runtime || 'openclaw');

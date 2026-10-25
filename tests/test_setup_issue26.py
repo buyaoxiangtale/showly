@@ -20,7 +20,7 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SETUP_SH = PROJECT_ROOT / "setup.sh"
-SYNC_SH = PROJECT_ROOT / "agents" / "sync.sh"
+SYNC_SH = PROJECT_ROOT / "optional" / "openclaw" / "sync.sh"
 
 sys.path.insert(0, str(PROJECT_ROOT))
 

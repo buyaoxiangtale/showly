@@ -1,0 +1,37 @@
+{
+  "name": "@ifline/showly-plugin",
+  "version": "0.1.0",
+  "description": "Showly 社媒内容技能包插件：114 个技能 + 引擎无关指令层 + IFLINE 署名输出，可安装到 ZCode / Claude Code / Codex / DeepSeek Harness (DSH)",
+  "type": "module",
+  "license": "Apache-2.0",
+  "bin": {
+    "showly-plugin": "bin/showly-plugin.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin/",
+    "installer/",
+    "instructions/",
+    "templates/",
+    "skills/",
+    "profiles/",
+    "README.md"
+  ],
+  "scripts": {
+    "prepack": "node scripts/stage-assets.mjs",
+    "test": "node --test"
+  },
+  "keywords": [
+    "showly",
+    "ifline",
+    "agent-plugin",
+    "skills",
+    "zcode",
+    "claude-code",
+    "codex",
+    "deepseek-harness",
+    "dsh"
+  ]
+}

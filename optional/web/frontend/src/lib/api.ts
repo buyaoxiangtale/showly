@@ -891,6 +891,50 @@ export function saveChatTransport(transport: 'api' | 'openclaw'): Promise<ModelC
   });
 }
 
+// ---- Showly 云端模型订阅（一键接入）----
+
+export interface SubscriptionStatus {
+  keyPresent: boolean;
+  enabled: boolean;
+  baseUrl: string;
+  chatModel: string;
+  imageModel: string;
+  videoModel: string;
+  musicModel: string;
+  keyPreview?: string;
+}
+
+export interface SubscriptionChannelResult {
+  configured: boolean;
+  model: string;
+  status: 'verified' | 'listed' | 'skipped' | 'unverified' | 'local';
+  note?: string;
+}
+
+export interface SubscriptionEnableResult {
+  ok: boolean;
+  keySource: 'provided' | 'env';
+  baseUrl: string;
+  chat: SubscriptionChannelResult;
+  image: SubscriptionChannelResult;
+  video: SubscriptionChannelResult;
+  music: SubscriptionChannelResult;
+  voice: SubscriptionChannelResult;
+  transcribe: SubscriptionChannelResult;
+  modelCount: number;
+}
+
+export function fetchSubscriptionStatus(): Promise<SubscriptionStatus> {
+  return request<{ subscription: SubscriptionStatus }>('/api/settings/subscription').then((r) => r.subscription);
+}
+
+export function enableSubscription(key?: string): Promise<{ result: SubscriptionEnableResult; subscription: SubscriptionStatus }> {
+  return request<{ result: SubscriptionEnableResult; subscription: SubscriptionStatus }>('/api/settings/subscription/enable', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: key || '' }),
+  });
+}
+
 // （保存接口见上方 saveModelConfig）
 
 export interface SelftestResult { baseUrl: string; ok: boolean; ms: number; detail?: string }

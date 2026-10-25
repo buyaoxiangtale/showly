@@ -1564,3 +1564,24 @@ textarea.field { resize: vertical; min-height: 90px; }
 .promotion-job-succeeded { background: var(--green-soft); color: var(--green); border-color: transparent; }
 .promotion-job-failed { background: rgba(220, 38, 38, 0.1); color: #dc2626; border-color: transparent; }
 .promotion-job-cancelled { color: var(--text-tertiary); }
+
+/* ---- Showly 云端模型订阅卡片 ---- */
+
+.sub-card {
+  margin: 0 0 14px; padding: 14px 16px;
+  border: 1px solid var(--border-faint, rgba(127,127,127,0.18));
+  border-radius: 12px;
+  background: var(--accent-soft, rgba(59,130,246,0.06));
+}
+.sub-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sub-head strong { font-size: 14px; display: flex; align-items: baseline; gap: 8px; }
+.sub-head strong small { font-size: 11.5px; color: var(--text-tertiary); font-weight: 400; }
+.sub-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.65; margin: 8px 0 10px; }
+.sub-form { display: flex; gap: 8px; }
+.sub-form .field { flex: 1; }
+.sub-channels { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.sub-ch-verified { background: var(--green-soft); color: var(--green); border-color: transparent; }
+.sub-ch-listed { background: var(--green-soft); color: var(--green); border-color: transparent; }
+.sub-ch-skipped { background: var(--surface-hover, rgba(127,127,127,0.1)); color: var(--text-tertiary); border-color: transparent; }
+.sub-ch-unverified { background: var(--amber-soft); color: var(--amber); border-color: transparent; }
+.sub-ch-local { background: var(--surface-hover, rgba(127,127,127,0.1)); color: var(--text-secondary); border-color: transparent; }

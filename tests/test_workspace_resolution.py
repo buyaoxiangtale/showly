@@ -25,7 +25,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from easel import openclaw_workspace as ws  # noqa: E402
 from easel.commands import doctor  # noqa: E402
 
-SYNC_SH = PROJECT_ROOT / "agents" / "sync.sh"
+SYNC_SH = PROJECT_ROOT / "optional" / "openclaw" / "sync.sh"
 SETUP_PS1 = PROJECT_ROOT / "setup.ps1"
 DOCTOR_PY = PROJECT_ROOT / "easel" / "commands" / "doctor.py"
 
@@ -183,11 +183,11 @@ def test_setup_sh_does_not_swallow_sync_warnings():
     """sync.sh 解析不出 workspace 的警告只走 stderr 且不含 ✓/→。把 stderr 并进管道再 grep
     就会整条吃掉 —— 装完一声不吭，技能却同步到 agent 不读的目录（issue #19 重建版）。"""
     for line in SETUP_SH.read_text(encoding="utf-8").splitlines():
-        if "agents/sync.sh" in line and not line.lstrip().startswith("#"):
+        if "optional/openclaw/sync.sh" in line and not line.lstrip().startswith("#"):
             assert "2>&1" not in line, f"sync.sh 的 stderr 被并进管道后 grep 掉了：{line.strip()}"
             break
     else:
-        pytest.fail("setup.sh 里找不到调用 agents/sync.sh 的那行")
+        pytest.fail("setup.sh 里找不到调用 optional/openclaw/sync.sh 的那行")
 
 
 def test_sync_sh_takes_last_line_only():

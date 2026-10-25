@@ -197,7 +197,7 @@ def test_ipv6_host_gets_brackets(isolated, monkeypatch):
 
 def test_gateway_ps1_delegates_to_python_resolver():
     """gateway.ps1 必须调用 easel/gateway_endpoint.py，而不是自己算端口。"""
-    text = (PROJECT_ROOT / "scripts" / "gateway.ps1").read_text(encoding="utf-8")
+    text = (PROJECT_ROOT / "optional" / "openclaw" / "gateway.ps1").read_text(encoding="utf-8")
     assert "gateway_endpoint" in text and "resolve_gateway_port" in text, \
         "端口必须问单一真相源"
     for const in ("2166136261", "16777619", "40000"):
@@ -210,7 +210,7 @@ def test_gateway_ps1_fails_loudly_when_unresolvable():
     「悄悄探错端口」会让 healthz 恒假，于是 start 反复 --force 重启一个健康的
     gateway —— 这正是当初要根治的病。
     """
-    text = (PROJECT_ROOT / "scripts" / "gateway.ps1").read_text(encoding="utf-8")
+    text = (PROJECT_ROOT / "optional" / "openclaw" / "gateway.ps1").read_text(encoding="utf-8")
     assert "无法解析 gateway 端口" in text
     assert "if ($Port -le 0)" in text
 
@@ -218,11 +218,11 @@ def test_gateway_ps1_fails_loudly_when_unresolvable():
 # ── 别再写死：源码层面钉住 ─────────────────────────────────────────────
 
 GATEWAY_FILES = [
-    "web/app.py",
+    "optional/web/app.py",
     "easel/commands/doctor.py",
     "easel/commands/ping.py",
-    "scripts/gateway.sh",
-    "scripts/gateway.ps1",
+    "optional/openclaw/gateway.sh",
+    "optional/openclaw/gateway.ps1",
 ]
 
 
@@ -240,11 +240,11 @@ def test_no_hardcoded_gateway_endpoint(rel):
 
 
 @pytest.mark.parametrize("rel,needle", [
-    ("web/app.py", "from easel.gateway_endpoint import"),
+    ("optional/web/app.py", "from easel.gateway_endpoint import"),
     ("easel/commands/doctor.py", "from easel.gateway_endpoint import"),
     ("easel/commands/ping.py", "from easel.gateway_endpoint import"),
-    ("scripts/gateway.sh", "resolve_gateway_port"),
-    ("scripts/gateway.ps1", "resolve_gateway_port"),
+    ("optional/openclaw/gateway.sh", "resolve_gateway_port"),
+    ("optional/openclaw/gateway.ps1", "resolve_gateway_port"),
 ])
 def test_port_comes_from_resolver(rel, needle):
     """每个入口都必须真的去查端口，而不是自己造一个。"""

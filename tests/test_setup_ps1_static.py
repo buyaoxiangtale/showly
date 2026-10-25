@@ -19,7 +19,7 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SETUP_PS1 = PROJECT_ROOT / "setup.ps1"
-GATEWAY_PS1 = PROJECT_ROOT / "scripts" / "gateway.ps1"
+GATEWAY_PS1 = PROJECT_ROOT / "optional" / "openclaw" / "gateway.ps1"
 
 
 def _read(p: Path) -> str:

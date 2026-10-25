@@ -3,9 +3,10 @@ import { fetchHarnessModels, fetchHarnessSettings, saveHarnessSettings } from '.
 import type { HarnessModel, HarnessSettingsResponse } from '../lib/api';
 import SettingsSelect from './SettingsSelect';
 
-export default function HarnessSettings({ onChange, onSelect }: {
+export default function HarnessSettings({ onChange, onSelect, refreshKey = 0 }: {
   onChange: (runtime: string) => void;
   onSelect: (runtime: string) => void;
+  refreshKey?: number;
 }) {
   const [settings, setSettings] = useState<HarnessSettingsResponse | null>(null);
   const [runtime, setRuntime] = useState('api');
@@ -40,7 +41,7 @@ export default function HarnessSettings({ onChange, onSelect }: {
       if (alive) setSettingsLoading(false);
     });
     return () => { alive = false; modelRequest.current += 1; };
-  }, [onChange, onSelect, refresh]);
+  }, [onChange, onSelect, refresh, refreshKey]);
 
   const selected = settings?.agents.find((agent) => agent.id === runtime);
   const nativeModels = catalogs[runtime] || [];

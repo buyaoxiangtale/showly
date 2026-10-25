@@ -8,8 +8,12 @@ import {
   fetchEnvTools, startEnvInstall, fetchEnvJob,
   fetchModelChannels, runChannelSelftest, saveModelConfig,
   fetchLocalAgents, enableLocalAgent, fetchAvailableModels,
+  fetchSubscriptionStatus, enableSubscription,
 } from '../lib/api';
-import type { EnvTool, ModelRow, SelftestResult, LocalAgentInfo } from '../lib/api';
+import type {
+  EnvTool, ModelRow, SelftestResult, LocalAgentInfo,
+  SubscriptionStatus, SubscriptionEnableResult, SubscriptionChannelResult,
+} from '../lib/api';
 import { IconSlidersHorizontal, IconPackage, IconEllipsis } from './settingsIcons';
 
 interface Props {
@@ -159,6 +163,13 @@ export default function SettingsPanel({ onClose, banner = '' }: Props) {
   const [mediaRows, setMediaRows] = useState<Record<string, ModelRow[]>>({});
   const [modelLoading, setModelLoading] = useState(true);
   const [modelErr, setModelErr] = useState('');
+  // ── Showly 云端模型订阅 ──────────────────────────────────
+  const [sub, setSub] = useState<SubscriptionStatus | null>(null);
+  const [subKeyInput, setSubKeyInput] = useState('');
+  const [subBusy, setSubBusy] = useState(false);
+  const [subErr, setSubErr] = useState('');
+  const [subResult, setSubResult] = useState<SubscriptionEnableResult | null>(null);
+  const [subRefresh, setSubRefresh] = useState(0);
   const [selftest, setSelftest] = useState<{ testedAt: number; byBase: Record<string, SelftestResult> } | null>(null);
   const [testing, setTesting] = useState(false);
   const [selftestNote, setSelftestNote] = useState('');
@@ -251,7 +262,30 @@ export default function SettingsPanel({ onClose, banner = '' }: Props) {
       .catch((e) => { if (alive) setModelErr(e instanceof Error ? e.message : '模型配置读取失败'); })
       .finally(() => { if (alive) setModelLoading(false); });
     return () => { alive = false; };
-  }, [harness, selectedHarness]);
+  }, [harness, selectedHarness, subRefresh]);
+
+  // ── Showly 云端模型订阅（一键接入） ─────────────────────
+  useEffect(() => {
+    if (sec !== 'model' || sub) return;
+    fetchSubscriptionStatus().then(setSub).catch(() => {});
+  }, [sec, sub]);
+
+  const doSubscribe = useCallback(async () => {
+    setSubBusy(true);
+    setSubErr('');
+    setSubResult(null);
+    try {
+      const d = await enableSubscription(subKeyInput.trim() || undefined);
+      setSubResult(d.result);
+      setSub(d.subscription);
+      if (!subKeyInput.trim()) setSubKeyInput('');
+      setSubRefresh((n) => n + 1);   // 订阅改写了 .env → 通道矩阵与底座状态刷新
+    } catch (e) {
+      setSubErr(e instanceof Error ? e.message : '启用失败');
+    } finally {
+      setSubBusy(false);
+    }
+  }, [subKeyInput]);
 
   const doSelftest = useCallback(async (channel: string) => {
     setTesting(true);
@@ -728,6 +762,57 @@ export default function SettingsPanel({ onClose, banner = '' }: Props) {
           <div className="settings-main">
             {sec === 'model' && (
               <section className="st-sec active">
+                {/* Showly 云端模型订阅：一键配置全部通道，零概念门槛 */}
+                <div className="sub-card">
+                  <div className="sub-head">
+                    <strong>☁️ Showly 云端模型<small>订阅 · 一键接入</small></strong>
+                    <span className={`pill ${sub?.enabled ? 'ok' : sub?.keyPresent ? 'todo' : 'off'}`}>
+                      <span className="dot" />
+                      {sub?.enabled ? '已启用' : sub?.keyPresent ? 'Key 就绪，未启用' : '未配置'}
+                    </span>
+                  </div>
+                  <div className="sub-desc">
+                    一个 Key 自动配置对话、生图、视频、音乐全部通道（语音与转写用本地免费方案，零配置）。
+                    输入框留空则使用 .env 里预填的订阅 Key{sub?.keyPreview ? `（当前 …${sub.keyPreview}）` : ''}。
+                  </div>
+                  <div className="sub-form">
+                    <input
+                      className="field" type="password" autoComplete="off"
+                      placeholder="订阅 Key（留空 = 使用 .env 预填的 EASEL_SUBSCRIPTION_KEY）"
+                      value={subKeyInput} onChange={(e) => setSubKeyInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && !subBusy && void doSubscribe()}
+                    />
+                    <button className="btn btn-sm btn-primary" onClick={() => void doSubscribe()} disabled={subBusy}>
+                      {subBusy ? '接入中…' : sub?.enabled ? '更新配置' : '一键启用'}
+                    </button>
+                  </div>
+                  {subErr && <div className="save-note err">{subErr}</div>}
+                  {sub?.enabled && !subResult && (
+                    <div className="sub-channels">
+                      {([['对话', sub.chatModel], ['生图', sub.imageModel], ['视频', sub.videoModel], ['音乐', sub.musicModel]] as Array<[string, string]>).map(([label, model]) => (
+                        <span key={label} className="badge">{label}{model ? ` · ${model}` : ' · 未配置'}</span>
+                      ))}
+                    </div>
+                  )}
+                  {subResult && (
+                    <div className="sub-channels">
+                      {([
+                        ['对话', subResult.chat], ['生图', subResult.image],
+                        ['视频', subResult.video], ['音乐', subResult.music],
+                        ['语音', subResult.voice], ['转写', subResult.transcribe],
+                      ] as Array<[string, SubscriptionChannelResult]>).map(([label, ch]) => (
+                        <span
+                          key={label}
+                          className={`badge sub-ch-${ch.status}`}
+                          title={ch.note || ''}
+                        >
+                          {label}：{ch.status === 'local' ? '本地免费' : ch.status === 'verified' ? '✓ ' : ch.status === 'skipped' ? '跳过 · ' : ch.status === 'unverified' ? '未验证 · ' : ''}{ch.model || ch.note || ''}
+                        </span>
+                      ))}
+                      <span className="badge">服务提供 {subResult.modelCount} 个模型</span>
+                    </div>
+                  )}
+                </div>
                 <div className="tabbar">
                   {CHANNELS.map((c) => (
                     <button key={c.id} className={`tab${chan === c.id ? ' active' : ''}`} onClick={() => setChan(c.id)}>
@@ -737,7 +822,7 @@ export default function SettingsPanel({ onClose, banner = '' }: Props) {
                 </div>
                 {savedNote ? <div className={`save-note${savedNote.startsWith('保存失败') || savedNote.startsWith('没有') ? ' err' : ''}`}>{savedNote}</div> : null}
 
-                {chan === 'chat' && <HarnessSettings onChange={setHarness} onSelect={setSelectedHarness} />}
+                {chan === 'chat' && <HarnessSettings onChange={setHarness} onSelect={setSelectedHarness} refreshKey={subRefresh} />}
                 {chan === 'chat' && (selectedHarness === 'api' || selectedHarness === 'openclaw') && (
                   <section className="st-panel active">
                     <div className="panel-top">

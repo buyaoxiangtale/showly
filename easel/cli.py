@@ -210,9 +210,9 @@ def cmd_web(args) -> int:
     port = getattr(args, "port", 7860)
     env = web_environment(_proxy_env())
     env["EASEL_PORT"] = str(port)
-    script = PROJECT_ROOT / "web" / "app.py"
+    script = PROJECT_ROOT / "optional" / "web" / "app.py"
     if not script.is_file():
-        print(f"{RED}未找到 web/app.py{NC} — 安装可能不完整，请重跑 `bash setup.sh`。",
+        print(f"{RED}未找到 optional/web/app.py{NC} — 安装可能不完整，请重跑 `bash setup.sh`。",
               file=sys.stderr)
         return 1
     # 透传子进程返回码：端口占用/依赖缺失导致 app.py 立刻退出时，调用方
@@ -262,12 +262,25 @@ def main(argv: list[str] | None = None) -> int:
     p_web.add_argument("--port", type=int, default=7860, help="端口（默认 7860）")
     p_web.set_defaults(func=cmd_web)
 
+    # mcp：云端 Tools 服务（账号/套餐/积分计费，见 mcp/README.md）
+    p_mcp = sub.add_parser("mcp", help="启动 MCP Tools 服务（计费版）")
+    p_mcp.add_argument("--port", type=int, default=8800, help="端口（默认 8800）")
+    p_mcp.set_defaults(func=cmd_mcp)
+
     args = parser.parse_args(argv)
     try:
         return args.func(args)
     except HarnessError as error:
         print(f"Agent 设置错误：{error}", file=sys.stderr)
         return 1
+
+
+def cmd_mcp(args) -> int:
+    """启动 Showly MCP 服务（python -m mcp 的等价入口）。"""
+    from showly_mcp.server import main as mcp_main
+
+    mcp_main(port=getattr(args, "port", 8800))
+    return 0
 
 
 if __name__ == "__main__":

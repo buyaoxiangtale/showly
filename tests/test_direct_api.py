@@ -14,7 +14,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "web"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "optional" / "web"))
 import app as web
 from easel import direct_api
 from easel.harnesses import store

@@ -36,7 +36,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field, StrictBool
 from sse_starlette.sse import EventSourceResponse
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]  # optional/web/ → 仓库根
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -49,6 +49,7 @@ from easel.persona import (load_profile_text, persona_prefix, chat_turn_message,
                            profile_exists, valid_persona_name, _FILE_ORDER)
 from easel.timeouts import TIMEOUT_CHAT, TIMEOUT_DIRECT, TIMEOUT_PRODUCE
 from easel.manual_publish import build_package, publishing_mode
+from easel import subscription
 from easel.direct_api import (DirectAPIError, SYSTEM_PROMPT, api_config, api_mode,
                               history_path, read_settings, stream_chat)
 from easel import harnesses
@@ -1265,6 +1266,24 @@ async def api_settings_bootstrap():
     except Exception:  # noqa: BLE001
         warnings = []
 
+    subscription_auto_enabled = False
+    if not (env_ok and route_ok) and runtime in ('api', 'openclaw') and not subscription.is_enabled():
+        # 零点击接入：模型未配置且 .env 里有订阅 Key 时自动启用（探测失败不阻断，
+        # 用户仍可走手动配置；只在缺配置时尝试，已配置的用户不受影响）
+        if subscription.get_subscription_key() and not any(
+                name in os.environ for name in (
+                    'EASEL_DIRECT_API_BASE_URL', 'EASEL_DIRECT_API_MODEL', 'EASEL_DIRECT_API_KEY')):
+            try:
+                await asyncio.to_thread(subscription.enable)
+                env_ok = route_ok = True
+                route_detail = ''
+                direct = True
+                subscription_auto_enabled = True
+            except subscription.SubscriptionError as error:
+                route_detail = f'订阅自动启用失败：{error}'
+            except Exception as e:  # noqa: BLE001
+                route_detail = f'订阅自动启用失败：{e}'
+
     return {
         'modelConfigured': bool(env_ok and route_ok),
         'envKeyOk': env_ok,
@@ -1273,7 +1292,34 @@ async def api_settings_bootstrap():
         'gatewayUp': bool(route_ok) if direct else bool(await asyncio.to_thread(check_gateway)),
         'openclawConfigExists': _oc_config_path().is_file(),
         'installWarnings': warnings,
+        'subscriptionAutoEnabled': subscription_auto_enabled,
     }
+
+
+class SubscriptionEnableRequest(BaseModel):
+    key: str = ""
+
+
+@app.get("/api/settings/subscription")
+async def api_subscription_status():
+    """订阅配置状态（本地快查，不探测网络；Key 不回显）。"""
+    info = subscription.status()
+    info['keyPreview'] = ('…' + subscription.get_subscription_key()[-4:]) if info['keyPresent'] else ''
+    return {"ok": True, "subscription": info}
+
+
+@app.post("/api/settings/subscription/enable")
+async def api_subscription_enable(req: SubscriptionEnableRequest):
+    """一键启用 Showly 云端模型订阅：探测 Key → 全通道写入 .env。"""
+    key = (req.key or "").strip()
+    if any(name in os.environ for name in (
+            "EASEL_DIRECT_API_BASE_URL", "EASEL_DIRECT_API_MODEL", "EASEL_DIRECT_API_KEY")):
+        raise HTTPException(409, "运行环境已指定直连配置，请修改启动环境后重启，不能用订阅覆盖")
+    try:
+        result = await asyncio.to_thread(subscription.enable, key or None)
+        return {"ok": True, "result": result, "subscription": subscription.status()}
+    except subscription.SubscriptionError as error:
+        raise HTTPException(400, str(error)) from None
 
 
 @app.post("/api/gateway/restart")

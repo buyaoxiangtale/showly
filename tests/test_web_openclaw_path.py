@@ -12,7 +12,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(PROJECT_ROOT / "web"))
+sys.path.insert(0, str(PROJECT_ROOT / "optional" / "web"))
 
 import pytest
 
@@ -24,7 +24,7 @@ def test_web_module_uses_config_path_helper():
     """web/app.py、easel/local_agents.py 源码里不允许再出现直连
     Path.home()/.openclaw-easel 的路径拼接（后者是合并 #70 后新增的同类直连点，
     #71 原本只扫了 web/app.py，没扫到这个后加的模块）。"""
-    for rel in ("web/app.py", "easel/local_agents.py"):
+    for rel in ("optional/web/app.py", "easel/local_agents.py"):
         src = (PROJECT_ROOT / rel).read_text(encoding="utf-8")
         assert "Path.home() / '.openclaw-easel'" not in src, \
             f"{rel} 直连 .openclaw-easel 目录 —— 改用 easel.openclaw_workspace.config_path()"

@@ -87,3 +87,13 @@ skills/builtin/video-production/vendor/**/node_modules/
 skills/builtin/video-production/vendor/**/.remotion/
 skills/builtin/video-production/vendor/**/models/
 skills/builtin/video-production/vendor/**/*large-v3*
+
+# plugin/ 打包暂存产物（npm pack 时由 prepack 从仓库根拷入，不入库）
+plugin/skills/
+plugin/profiles/
+plugin/.env.example
+plugin/node_modules/
+plugin/package-lock.json
+
+# ZCode 本地会话目录
+.zcode/
